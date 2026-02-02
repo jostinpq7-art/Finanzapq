@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction, Origin, TransactionType, TransactionStatus, CONSUMERS } from '../types';
+import { Origin, TransactionType, TransactionStatus, CONSUMERS } from '../types';
 import { GLASS_CLASSES } from '../constants';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -12,16 +12,10 @@ import {
   CreditCard, Package
 } from 'lucide-react';
 import { 
-  startOfMonth, endOfMonth, startOfYear, endOfYear, 
-  addMonths, subMonths, format, isWithinInterval 
+    startOfMonth, endOfMonth, startOfYear, endOfYear, 
+    addMonths, subMonths, format, isWithinInterval 
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface DashboardProps {
-  transactions: Transaction[];
-  onSettleDebt?: (transactionId: string) => Promise<void>;
-}
-
 // Fintech Color Palette for Charts
 const COLORS = {
   sales: '#059669', // Emerald
@@ -30,17 +24,16 @@ const COLORS = {
 };
 
 // Family Member Specific Colors
-const FAMILY_COLORS: Record<string, string> = {
+const FAMILY_COLORS = {
   "Amarilis": "#8B5CF6", // Violet
   "Luis": "#3B82F6",     // Blue
   "Hijos": "#F59E0B",    // Amber
   "Invitados": "#10B981" // Emerald
 };
-
-const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => {
-  // Navigation State
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+const Dashboard = ({ transactions, onSettleDebt }) => {
+    // Navigation State
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [viewMode, setViewMode] = useState('month');
 
   // --- Navigation Handlers ---
   const handlePrev = () => {
@@ -54,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
   const handleSetCurrent = () => setCurrentDate(new Date());
 
   // --- Filtering Logic (The "Time Travel") ---
-  const { filteredTransactions, dateLabel } = useMemo(() => {
+    const { filteredTransactions, dateLabel } = useMemo(() => {
     let start, end, label;
 
     if (viewMode === 'month') {
@@ -72,23 +65,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
     );
 
     return { filteredTransactions: filtered, dateLabel: label };
-  }, [transactions, currentDate, viewMode]);
+    }, [transactions, currentDate, viewMode]);
 
   // --- Metrics Calculation ---
-  const metrics = useMemo<{
-      businessSalesPaid: number; // Consumo + Venta Producto (PAID only)
-      businessPending: number; // Consumo + Venta Producto (PENDING only)
-      royalties: number; // Regalías only
-      businessOpExpenses: number; // Gastos only (Exclude Internal Consumption, CC, Inventory)
-      creditCardPayments: number; // New: Credit Card Payments
-      initialInventory: number; // New: Initial Inventory Value
-      familyRetailTotal: number;
-      familyCostTotal: number; // 50%
-      netProfit: number; // Formula provided by user
-      familyBreakdown: Record<string, number>;
-      homeExpenses: number;
-      homeContributions: number; // Aporte Familiar
-  }>(() => {
+    const metrics = useMemo(() => {
     let businessSalesPaid = 0;
     let businessPending = 0;
     let royalties = 0;
@@ -98,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
     
     // Family Consumption Logic
     let familyRetailTotal = 0;
-    const familyBreakdown: Record<string, number> = {};
+    const familyBreakdown = {};
     
     // Home Logic
     let homeExpenses = 0;
@@ -169,7 +149,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
     // Ganancia Neta = Ventas (Pagadas) + Regalías + Inventario Inicial (Activo) - Gastos Op - Costo Consumo Fam - Pago Tarjetas
     const netProfit = (businessSalesPaid + royalties + initialInventory) - businessOpExpenses - familyCostTotal - creditCardPayments;
 
-    return { 
+        return { 
       businessSalesPaid,
       businessPending,
       royalties,
@@ -183,11 +163,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
       homeExpenses,
       homeContributions
     };
-  }, [filteredTransactions]);
+    }, [filteredTransactions]);
 
   // --- Chart Data Preparation ---
-  const areaChartData = useMemo(() => {
-    const groups: {[key: string]: any} = {};
+    const areaChartData = useMemo(() => {
+    const groups = {};
     filteredTransactions.forEach(t => {
         const dateKey = format(t.date, viewMode === 'month' ? 'd MMM' : 'MMM', { locale: es });
         if (!groups[dateKey]) {
@@ -202,14 +182,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
             }
         }
     });
-    return Object.values(groups).sort((a:any, b:any) => 0); 
+        return Object.values(groups).sort((a, b) => 0); 
   }, [filteredTransactions, viewMode]);
 
-  const pieChartData = useMemo(() => {
-    return (Object.entries(metrics.familyBreakdown) as [string, number][])
-      .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({ name, value }));
-  }, [metrics.familyBreakdown]);
+    const pieChartData = useMemo(() => {
+        return Object.entries(metrics.familyBreakdown || {})
+            .filter(([_, value]) => value > 0)
+            .map(([name, value]) => ({ name, value }));
+    }, [metrics.familyBreakdown]);
 
   return (
     <div className="space-y-8">
@@ -402,7 +382,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
                                         <Cell key={`cell-${index}`} fill={FAMILY_COLORS[entry.name] || '#CBD5E1'} stroke="none" />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} contentStyle={{ borderRadius: '8px' }} />
+                                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} contentStyle={{ borderRadius: '8px' }} />
                             </PieChart>
                         </ResponsiveContainer>
                     )}
@@ -410,7 +390,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
 
                 {/* Detailed Table */}
                 <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar max-h-48">
-                    {(Object.entries(metrics.familyBreakdown) as [string, number][])
+                    {Object.entries(metrics.familyBreakdown || {})
                         .sort(([,a], [,b]) => b - a)
                         .map(([name, amount]) => (
                         <div key={name} className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-white">
@@ -471,11 +451,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onSettleDebt }) => 
       </div>
 
     </div>
-  );
+    );
 };
 
 // Helper Component for KPI Cards
-const KPICard = ({ title, amount, icon, bg, trend }: { title: string, amount: number, icon: React.ReactNode, bg: string, trend: 'positive' | 'negative' | 'neutral' }) => (
+const KPICard = ({ title, amount, icon, bg, trend }) => (
   <div className={`p-5 ${GLASS_CLASSES} flex flex-col justify-between hover:shadow-md transition-shadow`}>
     <div className="flex justify-between items-start mb-4">
       <div className={`p-3 rounded-xl ${bg}`}>
@@ -484,11 +464,11 @@ const KPICard = ({ title, amount, icon, bg, trend }: { title: string, amount: nu
       {trend === 'positive' && <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">+<ArrowUpRight className="w-3 h-3"/></span>}
       {trend === 'negative' && <span className="bg-rose-100 text-rose-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">-<ArrowDownRight className="w-3 h-3"/></span>}
     </div>
-    <div>
-      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">{title}</p>
-      <p className="text-slate-900 text-2xl font-bold tracking-tight">${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <div>
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">{title}</p>
+            <p className="text-slate-900 text-2xl font-bold tracking-tight">${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        </div>
     </div>
-  </div>
 );
 
 export default Dashboard;

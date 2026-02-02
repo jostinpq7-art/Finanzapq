@@ -4,12 +4,13 @@ import { getFirestore, Firestore } from "firebase/firestore";
 
 // Users should create a .env file or hardcode keys here for testing
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyDummyKey",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "dummy.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "dummy-project",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "dummy.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:123456789:web:abcdef"
+   apiKey: "AIzaSyCK8ztIW4AAmGIzNP8RCPzvvk72vy9ebyg",
+  authDomain: "finanzas-pq.firebaseapp.com",
+  projectId: "finanzas-pq",
+  storageBucket: "finanzas-pq.firebasestorage.app",
+  messagingSenderId: "202085156132",
+  appId: "1:202085156132:web:f054d60e873248e9f49fb1",
+  measurementId: "G-PGYLQJGPDK"
 };
 
 // Detect if we are using the placeholder key

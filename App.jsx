@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { auth, googleProvider, isMock } from './firebase';
-import { signInWithPopup, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
 import { addTransaction, getUserTransactions, updateTransactionStatus } from './services/transactionService';
-import { Transaction, TransactionStatus } from './types';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import { GLASS_BUTTON_PRIMARY, GLASS_CLASSES } from './constants';
 import { LayoutDashboard, Plus, LogOut, Hexagon, AlertTriangle } from 'lucide-react';
 
-const Alert: React.FC<{ message: string; onClose: () => void }> = ({ message, onClose }) => (
+const Alert = ({ message, onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
     <div className={`${GLASS_CLASSES} p-8 max-w-sm w-full text-center bg-white shadow-2xl`}>
       <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
@@ -21,11 +20,11 @@ const Alert: React.FC<{ message: string; onClose: () => void }> = ({ message, on
   </div>
 );
 
-const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'dashboard' | 'form'>('dashboard');
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [view, setView] = useState('dashboard');
+  const [transactions, setTransactions] = useState([]);
+  const [alertMessage, setAlertMessage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,14 +50,14 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const loadData = async (uid: string) => {
+  const loadData = async (uid) => {
     const data = await getUserTransactions(uid);
     setTransactions(data);
   };
 
   const handleLogin = async () => {
     if (isMock) {
-      const mockUser: any = {
+      const mockUser = {
         uid: "demo_user_123",
         displayName: "Usuario Demo",
         email: "demo@glass.app",
@@ -94,7 +93,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSaveTransaction = async (data: any) => {
+  const handleSaveTransaction = async (data) => {
     if (!user) return;
     try {
       await addTransaction(data);
@@ -105,17 +104,18 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSettleDebt = async (id: string) => {
+  const handleSettleDebt = async (id) => {
       if(!user) return;
       try {
-          await updateTransactionStatus(id, TransactionStatus.PAID);
+          // Asumiendo que TransactionStatus.PAID es 'paid'
+          await updateTransactionStatus(id, 'paid');
           await loadData(user.uid);
       } catch (e) {
           console.error(e);
       }
   };
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteTransaction = (id) => {
       const newTransactions = transactions.filter(t => t.id !== id);
       setTransactions(newTransactions);
       if(isMock) {
@@ -154,10 +154,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-24 md:pb-6 relative bg-[#F8F9FA]">
-      {/* Alert Modal */}
       {alertMessage && <Alert message={alertMessage} onClose={() => setAlertMessage(null)} />}
 
-      {/* Header */}
       <header className="px-6 py-4 flex justify-between items-center sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm">
@@ -176,7 +174,6 @@ const App: React.FC = () => {
         </button>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-6xl mx-auto p-4 md:p-8">
         {view === 'dashboard' ? (
           <div className="animate-fade-in">
@@ -195,7 +192,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Floating Action Bar (Mobile Navigation) */}
       <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
         <div className={`flex items-center gap-3 p-2 bg-white border border-slate-200 shadow-xl shadow-slate-200/50 rounded-2xl`}>
           <button 

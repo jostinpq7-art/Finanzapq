@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Origin, TransactionType, TransactionStatus, BUSINESS_TABS, BUSINESS_EXPENSE_CATEGORIES, HOME_CATEGORIES, CONSUMERS, Transaction } from '../types';
+import { Origin, TransactionType, TransactionStatus, BUSINESS_TABS, BUSINESS_EXPENSE_CATEGORIES, HOME_CATEGORIES, CONSUMERS } from '../types';
 import { GLASS_CLASSES, GLASS_INPUT, GLASS_BUTTON_PRIMARY } from '../constants';
 import { 
   Save, User, Coffee, ShoppingBag, DollarSign, 
@@ -9,35 +9,26 @@ import {
 } from 'lucide-react';
 import { format, isSameMonth, addDays, subDays, isSameDay, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface TransactionFormProps {
-  onSave: (data: any) => Promise<void>;
-  userId: string;
-  recentTransactions: Transaction[];
-  onDelete?: (id: string) => void;
-  onSettleDebt?: (id: string) => Promise<void>;
-}
-
-const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recentTransactions, onDelete, onSettleDebt }) => {
-  const [origin, setOrigin] = useState<Origin>(Origin.BUSINESS);
-  const [activeTab, setActiveTab] = useState<string>(BUSINESS_TABS.CONSUMO_CLIENTES);
+const TransactionForm = ({ onSave, userId, recentTransactions, onDelete, onSettleDebt }) => {
+    const [origin, setOrigin] = useState(Origin.BUSINESS);
+    const [activeTab, setActiveTab] = useState(BUSINESS_TABS.CONSUMO_CLIENTES);
   
   // Date Navigation State
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
-  const [amount, setAmount] = useState<string>('');
-  const [note, setNote] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [settlingId, setSettlingId] = useState<string | null>(null);
-  
-  // Specific Fields
-  const [client, setClient] = useState<string>('');
-  const [consumer, setConsumer] = useState<string>(CONSUMERS[0]);
-  const [selectedCategory, setSelectedCategory] = useState<string>(HOME_CATEGORIES[0]);
-  const [businessExpenseCat, setBusinessExpenseCat] = useState<string>(BUSINESS_EXPENSE_CATEGORIES[0]);
-  
-  // Debt / Fiado State
-  const [isPending, setIsPending] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    const [amount, setAmount] = useState('');
+    const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [settlingId, setSettlingId] = useState(null);
+
+    // Specific Fields
+    const [client, setClient] = useState('');
+    const [consumer, setConsumer] = useState(CONSUMERS[0]);
+    const [selectedCategory, setSelectedCategory] = useState(HOME_CATEGORIES[0]);
+    const [businessExpenseCat, setBusinessExpenseCat] = useState(BUSINESS_EXPENSE_CATEGORIES[0]);
+
+    // Debt / Fiado State
+    const [isPending, setIsPending] = useState(false);
 
   // --- Date Handlers ---
   const handlePrevDay = () => setSelectedDate(prev => subDays(prev, 1));
@@ -94,7 +85,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recen
     return { type, finalCategory };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || isNaN(Number(amount))) return;
 
@@ -118,7 +109,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recen
     }
     
     // NOTE: Using selectedDate.getTime() instead of Date.now() to register for the viewed date
-    const payload: any = {
+        const payload = {
       amount: Number(amount),
       origin,
       type,
@@ -149,16 +140,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recen
     setLoading(false);
   };
 
-  const handleSettle = async (e: React.MouseEvent, id: string) => {
-      e.stopPropagation();
-      if (!onSettleDebt) return;
-      
-      setSettlingId(id);
-      await onSettleDebt(id);
-      setSettlingId(null);
-  };
+    const handleSettle = async (e, id) => {
+        e.stopPropagation();
+        if (!onSettleDebt) return;
 
-  const getIconForCategory = (cat: string) => {
+        setSettlingId(id);
+        await onSettleDebt(id);
+        setSettlingId(null);
+    };
+
+    const getIconForCategory = (cat) => {
     const props = { size: 24, strokeWidth: 1.5 };
     if (cat.includes('Arriendo')) return <Home {...props} />;
     if (cat.includes('Servicios')) return <Zap {...props} />;
@@ -170,11 +161,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recen
   };
 
   // Filter History by Selected Date (Show all for that day, not just 10)
-  const filteredHistory = useMemo(() => {
-    return recentTransactions
-        .filter(t => t.origin === origin && isSameDay(t.date, selectedDate))
-        .sort((a, b) => b.date - a.date);
-  }, [recentTransactions, origin, selectedDate]);
+    const filteredHistory = useMemo(() => {
+        return recentTransactions
+                .filter(t => t.origin === origin && isSameDay(t.date, selectedDate))
+                .sort((a, b) => b.date - a.date);
+    }, [recentTransactions, origin, selectedDate]);
 
   // Sidebar Metric Logic
   const sidebarMetric = useMemo(() => {
@@ -563,7 +554,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, userId, recen
                                     <button 
                                         className="text-slate-400 hover:text-emerald-500 transition-colors"
                                         title="Cobrar (Marcar como Pagado)"
-                                        onClick={(e) => handleSettle(e, t.id!)}
+                                        onClick={(e) => handleSettle(e, t.id)}
                                         disabled={settlingId === t.id}
                                     >
                                         <HandCoins size={18} className={settlingId === t.id ? 'animate-pulse' : ''} />
